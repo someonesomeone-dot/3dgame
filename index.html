@@ -5,15 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Turn-based Country Game</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="country-selection">
         <h1>Choose Your Country</h1>
-        <button onclick="startGame()">Choose Country A</button>
-        <button onclick="startGame()">Choose Country B</button>
-        <button onclick="startGame()">Choose Country C</button>
-        <button onclick="startGame()">Choose Country D</button>
-        <button onclick="startGame()">Choose Country E</button>
+        <div id="menu">
+            <button onclick="startGame('A')">Country A</button>
+            <button onclick="startGame('B')">Country B</button>
+            <button onclick="startGame('C')">Country C</button>
+            <button onclick="startGame('D')">Country D</button>
+            <button onclick="startGame('E')">Country E</button>
+            <br><br>
+            <button onclick="showHowToPlay()">How to Play</button>
+        </div>
     </div>
 
     <div id="gameplay" style="display:none;">
@@ -22,6 +27,12 @@
         <div id="actions"></div>
         <div id="bot-moves"></div>
         <div id="player-action"></div>
+    </div>
+
+    <div id="how-to-play" style="display:none;">
+        <h2>How to Play</h2>
+        <p>In this game, you will choose a country to lead through the peace phase, making decisions that will affect your economy, military, and diplomacy. After 5 turns in the peace phase, you will enter the war phase, where you will use the resources you've gathered to protect your country and engage in war.</p>
+        <button onclick="closeHowToPlay()">Close</button>
     </div>
 
     <script src="script.js"></script>
