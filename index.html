@@ -1,18 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>3D Shooting Game</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turn-based Country Game</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="instructions">
-    Click to play (WASD to move, mouse to look, left-click to shoot)
-  </div>
-  <!-- Three.js from CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
-  <!-- PointerLockControls from Three.js examples -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.152.0/examples/js/controls/PointerLockControls.js"></script>
-  <script src="script.js"></script>
+    <div id="country-selection">
+        <h1>Choose Your Country</h1>
+        <button onclick="startGame()">Choose Country A</button>
+        <button onclick="startGame()">Choose Country B</button>
+        <button onclick="startGame()">Choose Country C</button>
+        <button onclick="startGame()">Choose Country D</button>
+        <button onclick="startGame()">Choose Country E</button>
+    </div>
+
+    <div id="gameplay" style="display:none;">
+        <div id="phase"></div>
+        <div id="stats"></div>
+        <div id="actions"></div>
+        <div id="bot-moves"></div>
+        <div id="player-action"></div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
