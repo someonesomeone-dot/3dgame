@@ -12,9 +12,8 @@ let gameState = {
 };
 
 // Start the game and select country
-function startGame() {
-  const countryChoice = prompt('Choose your country (A, B, C, D, E):');
-  const country = gameState.countries.find(c => c.name === `Country ${countryChoice.toUpperCase()}`);
+function startGame(countryChoice) {
+  const country = gameState.countries.find(c => c.name === `Country ${countryChoice}`);
   if (country) {
     gameState.player = country;
     document.getElementById('country-selection').style.display = 'none';
@@ -28,6 +27,15 @@ function startGame() {
   } else {
     alert('Invalid country choice. Please choose a valid country.');
   }
+}
+
+// How to Play
+function showHowToPlay() {
+  document.getElementById('how-to-play').style.display = 'block';
+}
+
+function closeHowToPlay() {
+  document.getElementById('how-to-play').style.display = 'none';
 }
 
 // Update the stats display
@@ -133,9 +141,36 @@ function endTurn() {
     gameState.phase = 'war';
     document.getElementById('phase').innerText = 'Phase: War';
     alert('Peace phase is over. The war phase begins!');
-    // Implement war phase logic here
+    // War phase activities will follow here
+    showWarPhaseActivities();
   } else {
     document.getElementById('phase').innerText = `Phase: Peace | Turn: ${gameState.turn}`;
     startTurn();
   }
+}
+
+// New War phase activities
+function showWarPhaseActivities() {
+  document.getElementById('player-action').innerHTML = `
+    <p>The war phase has begun!</p>
+    <button onclick="deployTroops()">Deploy Troops</button>
+    <button onclick="defendBorders()">Defend Borders</button>
+    <button onclick="negotiatePeace()">Negotiate Peace</button>
+  `;
+}
+
+function deployTroops() {
+  gameState.player.military += 10;
+  alert('You deployed troops, increasing your military strength!');
+}
+
+function defendBorders() {
+  gameState.player.military += 5;
+  gameState.player.diplomacy += 3;
+  alert('You defended your borders, improving your military and diplomacy!');
+}
+
+function negotiatePeace() {
+  gameState.player.diplomacy += 10;
+  alert('You negotiated peace, strengthening your diplomacy!');
 }
