@@ -1,142 +1,141 @@
-let camera, scene, renderer, controls;
-let objects = []; // Array to store target objects
-const raycaster = new THREE.Raycaster();
+let gameState = {
+  phase: 'peace',
+  countries: [
+    { name: 'Country A', land: 50, population: 30, economy: 40, military: 30, diplomacy: 20 },
+    { name: 'Country B', land: 60, population: 35, economy: 45, military: 25, diplomacy: 25 },
+    { name: 'Country C', land: 55, population: 40, economy: 50, military: 20, diplomacy: 30 },
+    { name: 'Country D', land: 65, population: 45, economy: 55, military: 15, diplomacy: 35 },
+    { name: 'Country E', land: 70, population: 50, economy: 60, military: 10, diplomacy: 40 }
+  ],
+  player: null,
+  turn: 0
+};
 
-init();
-animate();
-
-function init() {
-  // Create the scene and set its background color.
-  scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x202020);
-
-  // Set up the camera.
-  camera = new THREE.PerspectiveCamera(
-    75,
-    window.innerWidth / window.innerHeight,
-    1,
-    1000
-  );
-  camera.position.y = 10; // Eye level
-
-  // Create the renderer.
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(renderer.domElement);
-
-  // Add lights.
-  scene.add(new THREE.AmbientLight(0xffffff, 0.3));
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-  directionalLight.position.set(1, 1, 1).normalize();
-  scene.add(directionalLight);
-
-  // Create a ground plane.
-  const groundGeometry = new THREE.PlaneGeometry(1000, 1000);
-  const groundMaterial = new THREE.MeshPhongMaterial({ color: 0x555555 });
-  const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-  ground.rotation.x = -Math.PI / 2;
-  ground.receiveShadow = true;
-  scene.add(ground);
-
-  // Create target boxes.
-  const boxGeometry = new THREE.BoxGeometry(4, 4, 4);
-  const boxMaterial = new THREE.MeshPhongMaterial({ color: 0xff0000 });
-  for (let i = 0; i < 10; i++) {
-    const box = new THREE.Mesh(boxGeometry, boxMaterial);
-    // Randomly place targets ahead of the player.
-    box.position.set(Math.random() * 100 - 50, 2, Math.random() * -100 - 20);
-    scene.add(box);
-    objects.push(box);
-  }
-
-  // Set up pointer lock controls for a first-person perspective.
-  controls = new THREE.PointerLockControls(camera, document.body);
-  const instructions = document.getElementById('instructions');
-
-  instructions.addEventListener('click', () => {
-    controls.lock();
-  });
-
-  controls.addEventListener('lock', () => {
-    instructions.style.display = 'none';
-  });
-
-  controls.addEventListener('unlock', () => {
-    instructions.style.display = '';
-  });
-
-  scene.add(controls.getObject());
-
-  // Movement variables.
-  const move = { forward: false, backward: false, left: false, right: false };
-  const velocity = new THREE.Vector3();
-
-  // Keyboard events for movement.
-  document.addEventListener('keydown', (event) => {
-    switch (event.code) {
-      case 'KeyW': move.forward = true; break;
-      case 'KeyS': move.backward = true; break;
-      case 'KeyA': move.left = true; break;
-      case 'KeyD': move.right = true; break;
-    }
-  });
-
-  document.addEventListener('keyup', (event) => {
-    switch (event.code) {
-      case 'KeyW': move.forward = false; break;
-      case 'KeyS': move.backward = false; break;
-      case 'KeyA': move.left = false; break;
-      case 'KeyD': move.right = false; break;
-    }
-  });
-
-  // Shooting: raycast when left mouse button is clicked.
-  document.addEventListener('mousedown', (event) => {
-    if (event.button === 0 && controls.isLocked === true) {
-      // Create a ray from the center of the screen.
-      raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-      const intersects = raycaster.intersectObjects(objects);
-      if (intersects.length > 0) {
-        const target = intersects[0].object;
-        scene.remove(target);
-        objects = objects.filter(obj => obj !== target);
-        console.log('Target hit!');
-      }
-    }
-  });
-
-  // Movement update using delta time.
-  const clock = new THREE.Clock();
-  function updateMovement() {
-    const delta = clock.getDelta();
-    velocity.x -= velocity.x * 10.0 * delta;
-    velocity.z -= velocity.z * 10.0 * delta;
-    const speed = 50.0;
-
-    if (move.forward) velocity.z -= speed * delta;
-    if (move.backward) velocity.z += speed * delta;
-    if (move.left) velocity.x -= speed * delta;
-    if (move.right) velocity.x += speed * delta;
-
-    controls.moveRight(velocity.x * delta);
-    controls.moveForward(velocity.z * delta);
-  }
-
-  // Set up the render loop.
-  renderer.setAnimationLoop(() => {
-    updateMovement();
-    renderer.render(scene, camera);
-  });
-
-  // Handle window resizing.
-  window.addEventListener('resize', onWindowResize);
-  function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+// Start the game and select country
+function startGame() {
+  const countryChoice = prompt('Choose your country (A, B, C, D, E):');
+  const country = gameState.countries.find(c => c.name === `Country ${countryChoice.toUpperCase()}`);
+  if (country) {
+    gameState.player = country;
+    document.getElementById('country-selection').style.display = 'none';
+    document.getElementById('gameplay').style.display = 'block';
+    updateStats();
+    updateActions();
+    gameState.phase = 'peace';
+    gameState.turn = 1;
+    document.getElementById('phase').innerText = `Phase: Peace | Turn: ${gameState.turn}`;
+    startTurn();
+  } else {
+    alert('Invalid country choice. Please choose a valid country.');
   }
 }
 
-function animate() {
-  // Animation loop is handled in renderer.setAnimationLoop in the init function.
+// Update the stats display
+function updateStats() {
+  const stats = `
+    <p><strong>Your Country: ${gameState.player.name}</strong></p>
+    <p>Land: ${gameState.player.land}</p>
+    <p>Population: ${gameState.player.population}</p>
+    <p>Economy: ${gameState.player.economy}</p>
+    <p>Military: ${gameState.player.military}</p>
+    <p>Diplomacy: ${gameState.player.diplomacy}</p>
+  `;
+  document.getElementById('stats').innerHTML = stats;
+}
+
+// Update actions buttons
+function updateActions() {
+  const actions = `
+    <button onclick="strengthenEconomy()">Strengthen Economy</button>
+    <button onclick="boostMilitary()">Boost Military</button>
+    <button onclick="improveDiplomacy()">Improve Diplomacy</button>
+  `;
+  document.getElementById('actions').innerHTML = actions;
+}
+
+// Start a new turn: player acts, then bots
+function startTurn() {
+  showBotMoves();
+  setTimeout(() => {
+    showPlayerMoveOptions();
+  }, 2000); // Wait for bots to "finish" before the player moves
+}
+
+// Simulate bot actions (bots perform random actions)
+function showBotMoves() {
+  let botMoves = '';
+  gameState.countries.forEach(bot => {
+    if (bot !== gameState.player) {
+      const action = randomBotAction(bot);
+      botMoves += `<p>${bot.name} decided to ${action}</p>`;
+      applyBotAction(bot, action);
+    }
+  });
+  document.getElementById('bot-moves').innerHTML = botMoves;
+}
+
+// Random bot action selection (Economy, Military, or Diplomacy)
+function randomBotAction(bot) {
+  const actionType = Math.floor(Math.random() * 3); // 0: Economy, 1: Military, 2: Diplomacy
+  switch (actionType) {
+    case 0:
+      return `strengthen the economy by 5 points`;
+    case 1:
+      return `boost the military by 5 points`;
+    case 2:
+      return `improve diplomacy by 5 points`;
+    default:
+      return '';
+  }
+}
+
+// Apply the bot's action (randomly affecting stats)
+function applyBotAction(bot, action) {
+  if (action.includes('economy')) {
+    bot.economy += 5;
+  } else if (action.includes('military')) {
+    bot.military += 5;
+  } else if (action.includes('diplomacy')) {
+    bot.diplomacy += 5;
+  }
+}
+
+// Display player action options
+function showPlayerMoveOptions() {
+  document.getElementById('player-action').innerHTML = `
+    <p>It's your turn. What would you like to do?</p>
+    <button onclick="strengthenEconomy()">Strengthen Economy</button>
+    <button onclick="boostMilitary()">Boost Military</button>
+    <button onclick="improveDiplomacy()">Improve Diplomacy</button>
+  `;
+}
+
+// Player actions
+function strengthenEconomy() {
+  gameState.player.economy += 5;
+  endTurn();
+}
+
+function boostMilitary() {
+  gameState.player.military += 5;
+  endTurn();
+}
+
+function improveDiplomacy() {
+  gameState.player.diplomacy += 5;
+  endTurn();
+}
+
+// End the turn and prepare for the next
+function endTurn() {
+  gameState.turn++;
+  if (gameState.turn > 5) {
+    gameState.phase = 'war';
+    document.getElementById('phase').innerText = 'Phase: War';
+    alert('Peace phase is over. The war phase begins!');
+    // Implement war phase logic here
+  } else {
+    document.getElementById('phase').innerText = `Phase: Peace | Turn: ${gameState.turn}`;
+    startTurn();
+  }
 }
